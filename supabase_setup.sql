@@ -425,15 +425,22 @@ $$;
 -- 16. HABILITAR REALTIME en las tablas clave
 -- ============================================================
 -- Nota: En Supabase nuevo la publicación por defecto es 'supabase_realtime'
--- Estos comandos son idempotentes usando IF NOT EXISTS
 DO $$
+DECLARE
+    v_tables TEXT[] := ARRAY['public.matches','public.bets','public.profiles','public.payments','public.config'];
+    v_t     TEXT;
 BEGIN
     IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
-        ALTER PUBLICATION supabase_realtime ADD TABLE IF NOT EXISTS public.matches;
-        ALTER PUBLICATION supabase_realtime ADD TABLE IF NOT EXISTS public.bets;
-        ALTER PUBLICATION supabase_realtime ADD TABLE IF NOT EXISTS public.profiles;
-        ALTER PUBLICATION supabase_realtime ADD TABLE IF NOT EXISTS public.payments;
-        ALTER PUBLICATION supabase_realtime ADD TABLE IF NOT EXISTS public.config;
+        FOREACH v_t IN ARRAY v_tables
+        LOOP
+            -- Solo agregar si no está ya en la publicación
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_publication_tables
+                WHERE pubname = 'supabase_realtime' AND schemaname || '.' || tablename = v_t
+            ) THEN
+                EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE %s', v_t);
+            END IF;
+        END LOOP;
     END IF;
 END
 $$;
