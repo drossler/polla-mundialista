@@ -97,8 +97,9 @@ BEGIN
     IF EXISTS (
         SELECT 1 FROM information_schema.columns
         WHERE table_schema = 'public' AND table_name = 'config'
-          AND column_name = 'id' AND data_type IN ('uuid', 'character varying')
+          AND column_name = 'id' AND data_type = 'uuid'
     ) THEN
+        ALTER TABLE public.config ALTER COLUMN id DROP DEFAULT;
         ALTER TABLE public.config ALTER COLUMN id TYPE INTEGER USING 1;
         ALTER TABLE public.config ALTER COLUMN id SET DEFAULT 1;
         ALTER TABLE public.config DROP CONSTRAINT IF EXISTS config_single_row;
