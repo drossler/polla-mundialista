@@ -91,6 +91,21 @@ CREATE TABLE IF NOT EXISTS public.config (
     CONSTRAINT config_single_row CHECK (id = 1)
 );
 
+-- Fix: si la tabla fue creada antes con id UUID, migrar a INTEGER
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'config'
+          AND column_name = 'id' AND data_type IN ('uuid', 'character varying')
+    ) THEN
+        ALTER TABLE public.config ALTER COLUMN id TYPE INTEGER USING 1;
+        ALTER TABLE public.config ALTER COLUMN id SET DEFAULT 1;
+        ALTER TABLE public.config DROP CONSTRAINT IF EXISTS config_single_row;
+        ALTER TABLE public.config ADD CONSTRAINT config_single_row CHECK (id = 1);
+    END IF;
+END $$;
+
 -- Insert default config row
 INSERT INTO public.config (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
