@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Polla Mundialista</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <aside class="sidebar admin-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-futbol"></i>
+                <span>Admin Panel</span>
+            </div>
+            <button class="sidebar-close" id="sidebar-close"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="user-info">
+            <div class="user-avatar admin">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="user-details">
+                <h3 id="admin-name">Administrador</h3>
+                <p>Panel de Control</p>
+                <span class="user-status active">Activo</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="admin-nav active" data-section="dashboard">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+            <a href="#" class="admin-nav" data-section="users">
+                <i class="fas fa-users"></i> Usuarios
+            </a>
+            <a href="#" class="admin-nav" data-section="matches">
+                <i class="fas fa-futbol"></i> Partidos
+            </a>
+            <a href="#" class="admin-nav" data-section="bets">
+                <i class="fas fa-ticket-alt"></i> Apuestas
+            </a>
+            <a href="#" class="admin-nav" data-section="results">
+                <i class="fas fa-edit"></i> Ingresar Resultados
+            </a>
+            <a href="#" class="admin-nav" data-section="leaderboard">
+                <i class="fas fa-trophy"></i> Tabla de Posiciones
+            </a>
+            <a href="#" class="admin-nav" data-section="payments">
+                <i class="fas fa-dollar-sign"></i> Pagos
+            </a>
+            <a href="#" class="admin-nav" data-section="settings">
+                <i class="fas fa-cog"></i> Configuración
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="dashboard.html" class="back-user">
+                <i class="fas fa-user"></i> Modo Usuario
+            </a>
+            <a href="#" id="logout-btn" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <button class="menu-toggle" id="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h2 class="page-title" id="admin-page-title">Dashboard</h2>
+            <div class="top-bar-actions">
+                <div class="notification-bell">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-count" id="admin-notifications">0</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-content" id="admin-content">
+            <!-- Dashboard Section -->
+            <div class="admin-section active" id="section-dashboard">
+                <div class="admin-stats-row">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon blue"><i class="fas fa-users"></i></div>
+                        <div class="admin-stat-info">
+                            <h3 id="admin-total-users">0</h3>
+                            <p>Total Usuarios</p>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon green"><i class="fas fa-check-circle"></i></div>
+                        <div class="admin-stat-info">
+                            <h3 id="admin-paid-users">0</h3>
+                            <p>Pagos Confirmados</p>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon orange"><i class="fas fa-clock"></i></div>
+                        <div class="admin-stat-info">
+                            <h3 id="admin-pending-users">0</h3>
+                            <p>Pagos Pendientes</p>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon purple"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="admin-stat-info">
+                            <h3 id="admin-total-money">$0</h3>
+                            <p>Recaudado</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-grid">
+                    <div class="admin-panel">
+                        <div class="panel-header">
+                            <h3><i class="fas fa-chart-bar"></i> Inscripciones por Día</h3>
+                        </div>
+                        <div class="panel-body">
+                            <canvas id="registrationsChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="admin-panel">
+                        <div class="panel-header">
+                            <h3><i class="fas fa-futbol"></i> Partidos Próximos</h3>
+                        </div>
+                        <div class="panel-body" id="admin-upcoming-matches">
+                            <!-- JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-panel full">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Acciones Pendientes</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="pending-actions" id="pending-actions">
+                            <!-- JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div class="admin-section" id="section-users">
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-users"></i> Gestión de Usuarios</h3>
+                        <div class="panel-actions">
+                            <input type="text" id="user-search" placeholder="Buscar usuario...">
+                            <select id="user-filter">
+                                <option value="all">Todos</option>
+                                <option value="paid">Pagados</option>
+                                <option value="pending">Pendientes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Estado</th>
+                                    <th>Puntos</th>
+                                    <th>Registro</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Matches Section -->
+            <div class="admin-section" id="section-matches">
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-futbol"></i> Gestión de Partidos</h3>
+                        <div class="panel-actions">
+                            <select id="match-phase-filter">
+                                <option value="all">Todas las Fases</option>
+                                <option value="group">Fase de Grupos</option>
+                                <option value="round32">Dieciseisavos</option>
+                                <option value="round16">Octavos</option>
+                                <option value="quarter">Cuartos</option>
+                                <option value="semi">Semifinales</option>
+                                <option value="final">Final</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Fecha</th>
+                                    <th>Hora</th>
+                                    <th>Equipo 1</th>
+                                    <th>Equipo 2</th>
+                                    <th>Fase</th>
+                                    <th>Grupo</th>
+                                    <th>Resultado</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="matches-table-body">
+                                <!-- JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bets Section -->
+            <div class="admin-section" id="section-bets">
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-ticket-alt"></i> Todas las Apuestas</h3>
+                        <div class="panel-actions">
+                            <input type="text" id="bet-search" placeholder="Buscar...">
+                            <select id="bet-filter">
+                                <option value="all">Todas</option>
+                                <option value="pending">Pendientes</option>
+                                <option value="placed">Realizadas</option>
+                                <option value="scored">Puntuadas</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Partido</th>
+                                    <th>Predicción</th>
+                                    <th>Resultado Real</th>
+                                    <th>Puntos</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bets-table-body">
+                                <!-- JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Entry Section -->
+            <div class="admin-section" id="section-results">
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-edit"></i> Ingresar Resultados</h3>
+                        <p>Selecciona un partido finalizado e ingresa el resultado real</p>
+                    </div>
+                    <div class="panel-body">
+                        <div class="results-entry-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Partido</label>
+                                    <select id="result-match-select">
+                                        <option value="">Selecciona un partido</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="result-match-display" id="result-match-display">
+                                <div class="team-result">
+                                    <span id="result-team1-name">Equipo 1</span>
+                                    <input type="number" id="result-team1-score" min="0" placeholder="0">
+                                </div>
+                                <span class="vs">VS</span>
+                                <div class="team-result">
+                                    <span id="result-team2-name">Equipo 2</span>
+                                    <input type="number" id="result-team2-score" min="0" placeholder="0">
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="saveMatchResult()">
+                                <i class="fas fa-save"></i> Guardar Resultado y Calcular Puntos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard Section -->
+            <div class="admin-section" id="section-leaderboard">
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-trophy"></i> Tabla de Posiciones Oficial</h3>
+                        <button class="btn-sm" onclick="recalculateAllPoints()">
+                            <i class="fas fa-sync"></i> Recalcular Todo
+                        </button>
+                    </div>
+                    <div class="panel-body">
+                        <table class="admin-table leaderboard-admin">
+                            <thead>
+                                <tr>
+                                    <th>Pos</th>
+                                    <th>Participante</th>
+                                    <th>Puntos</th>
+                                    <th>Exactos</th>
+                                    <th>Ganadores</th>
+                                    <th>Incorrectos</th>
+                                    <th>Precisión</th>
+                                    <th>Pago</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-leaderboard-body">
+                                <!-- JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Section -->
+            <div class="admin-section" id="section-payments">
+                <div class="admin-stats-row">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon green"><i class="fas fa-check-circle"></i></div>
+                        <div class="admin-stat-info">
+                            <h3 id="pay-confirmed">0</h3>
+                            <p>Pagos Confirmados</p>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon orange"><i class="fas fa-clock"></i></div>
+                        <div class="admin-stat-info">
+                            <h3 id="pay-pending">0</h3>
+                            <p>Pagos Pendientes</p>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon blue"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="admin-stat-info">
+                            <h3 id="pay-total">$0</h3>
+                            <p>Total Recaudado</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-credit-card"></i> Gestión de Pagos</h3>
+                    </div>
+                    <div class="panel-body">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Email</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                    <th>Fecha Pago</th>
+                                    <th>Método</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payments-table-body">
+                                <!-- JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="admin-section" id="section-settings">
+                <div class="admin-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-cog"></i> Configuración de la Polla</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form id="settings-form" class="settings-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nombre de la Polla</label>
+                                    <input type="text" id="setting-name" value="Polla Mundialista Familiar 2026">
+                                </div>
+                                <div class="form-group">
+                                    <label>Costo de Inscripción ($)</label>
+                                    <input type="number" id="setting-cost" value="10">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Puntos por Resultado Exacto</label>
+                                    <input type="number" id="setting-exact" value="5">
+                                </div>
+                                <div class="form-group">
+                                    <label>Puntos por Ganador Correcto</label>
+                                    <input type="number" id="setting-winner" value="3">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Multiplicador Fase Final</label>
+                                    <input type="number" id="setting-multiplier" value="2" step="0.5">
+                                </div>
+                                <div class="form-group">
+                                    <label>Fecha Cierre Apuestas</label>
+                                    <input type="datetime-local" id="setting-deadline">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Premio 1° Lugar (%)</label>
+                                    <input type="number" id="setting-prize1" value="50">
+                                </div>
+                                <div class="form-group">
+                                    <label>Premio 2° Lugar (%)</label>
+                                    <input type="number" id="setting-prize2" value="25">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Premio 3° Lugar (%)</label>
+                                    <input type="number" id="setting-prize3" value="15">
+                                </div>
+                                <div class="form-group">
+                                    <label>Premio Último (%)</label>
+                                    <input type="number" id="setting-prize-last" value="10">
+                                </div>
+                            </div>
+                            <div class="form-group checkbox">
+                                <input type="checkbox" id="setting-active" checked>
+                                <label for="setting-active">Polla Activa (permitir nuevas inscripciones)</label>
+                            </div>
+                            <button type="submit" class="btn-submit">
+                                <i class="fas fa-save"></i> Guardar Configuración
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

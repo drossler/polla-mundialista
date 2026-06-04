@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - Polla Mundialista</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo"><i class="fas fa-futbol"></i><span>Polla Mundialista</span></div>
+            <button class="sidebar-close" id="sidebar-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="user-info">
+            <div class="user-avatar"><i class="fas fa-user-circle"></i></div>
+            <div class="user-details">
+                <h3 id="user-name">Usuario</h3>
+                <p id="user-email">email@ejemplo.com</p>
+                <span class="user-status" id="user-status">Pendiente de pago</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html"><i class="fas fa-home"></i> Inicio</a>
+            <a href="apuestas.html"><i class="fas fa-futbol"></i> Mis Apuestas</a>
+            <a href="resultados.html"><i class="fas fa-chart-bar"></i> Resultados</a>
+            <a href="posiciones.html"><i class="fas fa-trophy"></i> Tabla de Posiciones</a>
+            <a href="calendario.html"><i class="fas fa-calendar-alt"></i> Calendario</a>
+            <a href="perfil.html" class="active"><i class="fas fa-user"></i> Mi Perfil</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <button class="menu-toggle" id="menu-toggle"><i class="fas fa-bars"></i></button>
+            <h2 class="page-title">Mi Perfil</h2>
+            <div class="top-bar-actions">
+                <div class="notification-bell"><i class="fas fa-bell"></i><span class="notification-count">3</span></div>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <div class="profile-grid">
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user-circle"></i>
+                            <button class="change-avatar"><i class="fas fa-camera"></i></button>
+                        </div>
+                        <h3 id="profile-name">Nombre Usuario</h3>
+                        <p id="profile-email">email@ejemplo.com</p>
+                        <span class="profile-status" id="profile-status">Pendiente de pago</span>
+                    </div>
+
+                    <form id="profile-form" class="profile-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nombre Completo</label>
+                                <input type="text" id="edit-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Correo Electrónico</label>
+                                <input type="email" id="edit-email" required disabled>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Teléfono</label>
+                                <input type="tel" id="edit-phone">
+                            </div>
+                            <div class="form-group">
+                                <label>País Favorito</label>
+                                <select id="edit-favorite-team">
+                                    <option value="">Selecciona un equipo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+
+                <div class="profile-card payment-card">
+                    <h3><i class="fas fa-credit-card"></i> Información de Pago</h3>
+                    <div class="payment-status" id="payment-status-card">
+                        <div class="status-badge pending">
+                            <i class="fas fa-clock"></i> Pendiente de Pago
+                        </div>
+                        <p>Inscripción: <strong>$10 USD</strong></p>
+                        <div class="payment-methods">
+                            <h4>Métodos de Pago:</h4>
+                            <div class="method">
+                                <i class="fas fa-university"></i>
+                                <div>
+                                    <strong>Transferencia Bancaria</strong>
+                                    <p>Banco: Bancolombia</p>
+                                    <p>Cuenta: 1234567890</p>
+                                    <p>Titular: Polla Mundialista</p>
+                                </div>
+                            </div>
+                            <div class="method">
+                                <i class="fab fa-whatsapp"></i>
+                                <div>
+                                    <strong>Nequi / Daviplata</strong>
+                                    <p>Tel: +57 300 123 4567</p>
+                                    <p>Enviar comprobante por WhatsApp</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-mark-paid" onclick="markAsPaid()">
+                            <i class="fas fa-check"></i> Marcar como Pagado (Admin)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="profile-card stats-card">
+                    <h3><i class="fas fa-chart-pie"></i> Mis Estadísticas</h3>
+                    <div class="stats-grid">
+                        <div class="mini-stat">
+                            <span class="mini-stat-value" id="prof-points">0</span>
+                            <span class="mini-stat-label">Puntos</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-stat-value" id="prof-position">--</span>
+                            <span class="mini-stat-label">Posición</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-stat-value" id="prof-exact">0</span>
+                            <span class="mini-stat-label">Exactos</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-stat-value" id="prof-accuracy">0%</span>
+                            <span class="mini-stat-label">Precisión</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/data.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/perfil.js"></script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polla Mundialista Familiar 2026</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-futbol"></i>
+                <span>Polla Mundialista</span>
+            </div>
+            <div class="nav-links">
+                <a href="#inicio">Inicio</a>
+                <a href="#como-funciona">Cómo Funciona</a>
+                <a href="#premios">Premios</a>
+                <a href="#registro" class="btn-primary">Inscribirse</a>
+                <a href="login.html" class="btn-secondary">Iniciar Sesión</a>
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="hero">
+        <div class="hero-overlay"></div>
+        <div class="container">
+            <div class="hero-content">
+                <h1>Polla Mundialista<br><span class="highlight">Familiar 2026</span></h1>
+                <p class="hero-subtitle">Demuestra tus conocimientos de fútbol, compite con tu familia y amigos, y gana increíbles premios</p>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number" id="participantes-count">0</span>
+                        <span class="stat-label">Participantes</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">$500</span>
+                        <span class="stat-label">En Premios</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">64</span>
+                        <span class="stat-label">Partidos</span>
+                    </div>
+                </div>
+                <div class="hero-cta">
+                    <a href="#registro" class="btn-hero">¡Participa Ahora!</a>
+                    <a href="#como-funciona" class="btn-ghost">Cómo Funciona</a>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </section>
+
+    <!-- Cómo Funciona -->
+    <section id="como-funciona" class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">¿Cómo Funciona?</h2>
+            <p class="section-subtitle">Sigue estos simples pasos para participar</p>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h3>1. Regístrate</h3>
+                    <p>Crea tu cuenta gratuita en menos de 1 minuto</p>
+                </div>
+                <div class="step-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <h3>2. Paga la Inscripción</h3>
+                    <p>Realiza el pago de $10 para participar</p>
+                </div>
+                <div class="step-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-futbol"></i>
+                    </div>
+                    <h3>3. Apuesta</h3>
+                    <p>Predice los resultados de cada partido</p>
+                </div>
+                <div class="step-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h3>4. Gana</h3>
+                    <p>Acumula puntos y gana premios</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sistema de Puntos -->
+    <section class="points-system">
+        <div class="container">
+            <h2 class="section-title">Sistema de Puntuación</h2>
+            <div class="points-grid">
+                <div class="point-card">
+                    <div class="point-icon"><i class="fas fa-bullseye"></i></div>
+                    <h3>Resultado Exacto</h3>
+                    <div class="point-value">+5 pts</div>
+                    <p>Aciertas el marcador exacto del partido</p>
+                </div>
+                <div class="point-card">
+                    <div class="point-icon"><i class="fas fa-check-circle"></i></div>
+                    <h3>Ganador Correcto</h3>
+                    <div class="point-value">+3 pts</div>
+                    <p>Aciertas quién gana o si hay empate</p>
+                </div>
+                <div class="point-card">
+                    <div class="point-icon"><i class="fas fa-times-circle"></i></div>
+                    <h3>Resultado Incorrecto</h3>
+                    <div class="point-value">0 pts</div>
+                    <p>No aciertas el resultado del partido</p>
+                </div>
+                <div class="point-card bonus">
+                    <div class="point-icon"><i class="fas fa-star"></i></div>
+                    <h3>Bonus Fase Final</h3>
+                    <div class="point-value">x2 pts</div>
+                    <p>Puntos duplicados en octavos, cuartos, semis y final</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Premios -->
+    <section id="premios" class="prizes">
+        <div class="container">
+            <h2 class="section-title">Premios</h2>
+            <div class="prizes-grid">
+                <div class="prize-card first">
+                    <div class="prize-badge">1° Lugar</div>
+                    <div class="prize-icon"><i class="fas fa-trophy"></i></div>
+                    <div class="prize-amount">$250</div>
+                    <p>50% del pozo total</p>
+                </div>
+                <div class="prize-card second">
+                    <div class="prize-badge">2° Lugar</div>
+                    <div class="prize-icon"><i class="fas fa-medal"></i></div>
+                    <div class="prize-amount">$125</div>
+                    <p>25% del pozo total</p>
+                </div>
+                <div class="prize-card third">
+                    <div class="prize-badge">3° Lugar</div>
+                    <div class="prize-icon"><i class="fas fa-award"></i></div>
+                    <div class="prize-amount">$75</div>
+                    <p>15% del pozo total</p>
+                </div>
+                <div class="prize-card special">
+                    <div class="prize-badge">Último Lugar</div>
+                    <div class="prize-icon"><i class="fas fa-gift"></i></div>
+                    <div class="prize-amount">$50</div>
+                    <p>¡Consuelo para el último!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Registro -->
+    <section id="registro" class="registration">
+        <div class="container">
+            <div class="registration-card">
+                <h2>¡Inscríbete Ahora!</h2>
+                <p class="registration-price">Inscripción: <span>$10 USD</span></p>
+
+                <form id="register-form" class="register-form">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Nombre Completo</label>
+                        <input type="text" id="reg-name" required placeholder="Tu nombre completo">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Correo Electrónico</label>
+                        <input type="email" id="reg-email" required placeholder="tu@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> Teléfono / WhatsApp</label>
+                        <input type="tel" id="reg-phone" required placeholder="+1 234 567 8900">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Contraseña</label>
+                        <input type="password" id="reg-password" required placeholder="Mínimo 6 caracteres">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Confirmar Contraseña</label>
+                        <input type="password" id="reg-password2" required placeholder="Repite tu contraseña">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-users"></i> ¿Cómo te enteraste?</label>
+                        <select id="reg-referral">
+                            <option value="">Selecciona una opción</option>
+                            <option value="familia">Familia</option>
+                            <option value="amigo">Amigo</option>
+                            <option value="redes">Redes Sociales</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="reg-terms" required>
+                        <label for="reg-terms">Acepto los términos y condiciones</label>
+                    </div>
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-user-plus"></i> Crear Cuenta
+                    </button>
+                </form>
+
+                <div class="registration-info">
+                    <p><i class="fas fa-info-circle"></i> Después de registrarte, recibirás instrucciones de pago</p>
+                    <p class="login-link">¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tabla de Posiciones Preview -->
+    <section class="leaderboard-preview">
+        <div class="container">
+            <h2 class="section-title">Tabla de Posiciones</h2>
+            <div class="leaderboard-card">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Participante</th>
+                            <th>Puntos</th>
+                            <th>Aciertos</th>
+                            <th>Racha</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-preview-body">
+                        <!-- Se llena con JS -->
+                    </tbody>
+                </table>
+                <div class="view-full">
+                    <a href="login.html">Ver tabla completa <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Próximos Partidos -->
+    <section class="upcoming-matches">
+        <div class="container">
+            <h2 class="section-title">Próximos Partidos</h2>
+            <div class="matches-grid" id="upcoming-matches">
+                <!-- Se llena con JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <i class="fas fa-futbol"></i>
+                        <span>Polla Mundialista</span>
+                    </div>
+                    <p>La polla familiar más divertida del Mundial 2026</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Enlaces</h4>
+                    <a href="#inicio">Inicio</a>
+                    <a href="#como-funciona">Cómo Funciona</a>
+                    <a href="#premios">Premios</a>
+                    <a href="login.html">Iniciar Sesión</a>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contacto</h4>
+                    <p><i class="fas fa-envelope"></i> info@pollamundialista.com</p>
+                    <p><i class="fas fa-phone"></i> WhatsApp: +1 234 567 8900</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 Polla Mundialista Familiar. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de Confirmación -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla de Posiciones - Polla Mundialista</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo"><i class="fas fa-futbol"></i><span>Polla Mundialista</span></div>
+            <button class="sidebar-close" id="sidebar-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="user-info">
+            <div class="user-avatar"><i class="fas fa-user-circle"></i></div>
+            <div class="user-details">
+                <h3 id="user-name">Usuario</h3>
+                <p id="user-email">email@ejemplo.com</p>
+                <span class="user-status" id="user-status">Pendiente de pago</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html"><i class="fas fa-home"></i> Inicio</a>
+            <a href="apuestas.html"><i class="fas fa-futbol"></i> Mis Apuestas</a>
+            <a href="resultados.html"><i class="fas fa-chart-bar"></i> Resultados</a>
+            <a href="posiciones.html" class="active"><i class="fas fa-trophy"></i> Tabla de Posiciones</a>
+            <a href="calendario.html"><i class="fas fa-calendar-alt"></i> Calendario</a>
+            <a href="perfil.html"><i class="fas fa-user"></i> Mi Perfil</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <button class="menu-toggle" id="menu-toggle"><i class="fas fa-bars"></i></button>
+            <h2 class="page-title">Tabla de Posiciones</h2>
+            <div class="top-bar-actions">
+                <div class="notification-bell"><i class="fas fa-bell"></i><span class="notification-count">3</span></div>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <div class="leaderboard-header">
+                <div class="leaderboard-info">
+                    <p><i class="fas fa-users"></i> <span id="total-players">0</span> participantes</p>
+                    <p><i class="fas fa-futbol"></i> <span id="matches-played">0</span> partidos jugados</p>
+                </div>
+            </div>
+
+            <div class="leaderboard-container">
+                <table class="leaderboard-table full">
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Participante</th>
+                            <th>Puntos</th>
+                            <th>Aciertos Exactos</th>
+                            <th>Ganadores</th>
+                            <th>Incorrectos</th>
+                            <th>Precisión</th>
+                            <th>Racha</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- Se llena con JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/data.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/posiciones.js"></script>
+</body>
+</html>
