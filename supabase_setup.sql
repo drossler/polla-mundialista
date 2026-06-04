@@ -446,6 +446,31 @@ END
 $$;
 
 -- ============================================================
+-- 16B. MIGRACIÓN: agregar columnas faltantes a matches (si tabla existía antes)
+-- ============================================================
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='matches' AND column_name='match_time') THEN
+        ALTER TABLE public.matches ADD COLUMN match_time TEXT NOT NULL DEFAULT '00:00';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='matches' AND column_name='phase') THEN
+        ALTER TABLE public.matches ADD COLUMN phase TEXT DEFAULT 'group';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='matches' AND column_name='group_name') THEN
+        ALTER TABLE public.matches ADD COLUMN group_name TEXT DEFAULT '';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='matches' AND column_name='stadium') THEN
+        ALTER TABLE public.matches ADD COLUMN stadium TEXT DEFAULT '';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='matches' AND column_name='betting_closed') THEN
+        ALTER TABLE public.matches ADD COLUMN betting_closed BOOLEAN DEFAULT FALSE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='matches' AND column_name='created_at') THEN
+        ALTER TABLE public.matches ADD COLUMN created_at TIMESTAMPTZ DEFAULT NOW();
+    END IF;
+END $$;
+
+-- ============================================================
 -- 17. CARGAR PARTIDOS MUNDIALISTAS (72 partidos fase grupos)
 -- ============================================================
 INSERT INTO public.matches (team1, team2, match_date, match_time, phase, group_name, stadium, status) VALUES
