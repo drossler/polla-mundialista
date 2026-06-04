@@ -35,6 +35,9 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='winner_count') THEN ALTER TABLE public.profiles ADD COLUMN winner_count INTEGER DEFAULT 0; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='wrong_count') THEN ALTER TABLE public.profiles ADD COLUMN wrong_count INTEGER DEFAULT 0; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='paid_date') THEN ALTER TABLE public.profiles ADD COLUMN paid_date DATE; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='role') THEN ALTER TABLE public.profiles ADD COLUMN role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin')); END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='paid') THEN ALTER TABLE public.profiles ADD COLUMN paid BOOLEAN DEFAULT FALSE; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='points') THEN ALTER TABLE public.profiles ADD COLUMN points INTEGER DEFAULT 0; END IF;
 END $$;
 
 -- ============================================================
@@ -133,6 +136,9 @@ BEGIN
         WHERE table_schema = 'public' AND table_name = 'config'
           AND column_name = 'id' AND data_type = 'uuid'
     ) THEN
+        -- Eliminar duplicados (dejar solo una fila)
+        DELETE FROM public.config WHERE id NOT IN (SELECT id FROM public.config LIMIT 1);
+        -- Migrar columna
         ALTER TABLE public.config ALTER COLUMN id DROP DEFAULT;
         ALTER TABLE public.config ALTER COLUMN id TYPE INTEGER USING 1;
         ALTER TABLE public.config ALTER COLUMN id SET DEFAULT 1;
@@ -165,6 +171,23 @@ AS $$
         WHERE id = auth.uid() AND role = 'admin'
     );
 $$;
+
+-- ============================================================
+-- 7B. LIMPIAR POLÍTICAS EXISTENTES (para que el script sea idempotente)
+-- ============================================================
+DO $$
+DECLARE
+    v_rec RECORD;
+BEGIN
+    FOR v_rec IN (
+        SELECT policyname, tablename
+        FROM pg_policies
+        WHERE schemaname = 'public'
+          AND tablename IN ('profiles','matches','bets','payments','config')
+    ) LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', v_rec.policyname, v_rec.tablename);
+    END LOOP;
+END $$;
 
 -- ============================================================
 -- 8. POLÍTICAS RLS - profiles
@@ -507,7 +530,11 @@ END $$;
 -- ============================================================
 -- 17. CARGAR PARTIDOS MUNDIALISTAS (72 partidos fase grupos)
 -- ============================================================
-INSERT INTO public.matches (team1, team2, match_date, match_time, phase, group_name, stadium, status) VALUES
+-- Solo insertar si la tabla está vacía (para evitar duplicados en re-ejecuciones)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM public.matches LIMIT 1) THEN
+        INSERT INTO public.matches (team1, team2, match_date, match_time, phase, group_name, stadium, status) VALUES
 -- Grupo A
 ('MEX','RSA','2026-06-11','13:00','group','A','Estadio Azteca, CDMX','upcoming'),
 ('KOR','CZE','2026-06-11','20:00','group','A','Estadio Akron, Guadalajara','upcoming'),
@@ -591,8 +618,9 @@ INSERT INTO public.matches (team1, team2, match_date, match_time, phase, group_n
 ('ENG','GHA','2026-06-23','14:00','group','L','Gillette Stadium, Boston','upcoming'),
 ('PAN','CRO','2026-06-23','17:00','group','L','BMO Field, Toronto','upcoming'),
 ('PAN','ENG','2026-06-27','15:00','group','L','MetLife Stadium, NY/NJ','upcoming'),
-('CRO','GHA','2026-06-27','15:00','group','L','Lincoln Financial Field, Philadelphia','upcoming')
-ON CONFLICT DO NOTHING;
+('CRO','GHA','2026-06-27','15:00','group','L','Lincoln Financial Field, Philadelphia','upcoming');
+    END IF;
+END $$;
 
 -- ============================================================
 -- FIN DEL SETUP
