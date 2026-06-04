@@ -24,6 +24,20 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 );
 
 -- ============================================================
+-- 1B. MIGRACIÓN: agregar columnas faltantes a profiles (si tabla existía antes)
+-- ============================================================
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='telefono') THEN ALTER TABLE public.profiles ADD COLUMN telefono TEXT DEFAULT ''; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='favorite_team') THEN ALTER TABLE public.profiles ADD COLUMN favorite_team TEXT DEFAULT ''; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='streak') THEN ALTER TABLE public.profiles ADD COLUMN streak INTEGER DEFAULT 0; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='exact_count') THEN ALTER TABLE public.profiles ADD COLUMN exact_count INTEGER DEFAULT 0; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='winner_count') THEN ALTER TABLE public.profiles ADD COLUMN winner_count INTEGER DEFAULT 0; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='wrong_count') THEN ALTER TABLE public.profiles ADD COLUMN wrong_count INTEGER DEFAULT 0; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='paid_date') THEN ALTER TABLE public.profiles ADD COLUMN paid_date DATE; END IF;
+END $$;
+
+-- ============================================================
 -- 2. TABLA: matches
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.matches (
@@ -58,6 +72,15 @@ CREATE TABLE IF NOT EXISTS public.bets (
 );
 
 -- ============================================================
+-- 3B. MIGRACIÓN: agregar columnas faltantes a bets (si tabla existía antes)
+-- ============================================================
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='bets' AND column_name='points_earned') THEN ALTER TABLE public.bets ADD COLUMN points_earned INTEGER DEFAULT 0; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='bets' AND column_name='result_type') THEN ALTER TABLE public.bets ADD COLUMN result_type TEXT DEFAULT 'pending' CHECK (result_type IN ('pending','exact','winner','wrong')); END IF;
+END $$;
+
+-- ============================================================
 -- 4. TABLA: payments
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.payments (
@@ -70,6 +93,17 @@ CREATE TABLE IF NOT EXISTS public.payments (
     approved_at     TIMESTAMPTZ,
     created_at      TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ============================================================
+-- 4B. MIGRACIÓN: agregar columnas faltantes a payments (si tabla existía antes)
+-- ============================================================
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='payments' AND column_name='comprobante_url') THEN ALTER TABLE public.payments ADD COLUMN comprobante_url TEXT DEFAULT ''; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='payments' AND column_name='comprobante_notes') THEN ALTER TABLE public.payments ADD COLUMN comprobante_notes TEXT DEFAULT ''; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='payments' AND column_name='approved_by') THEN ALTER TABLE public.payments ADD COLUMN approved_by UUID REFERENCES public.profiles(id); END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='payments' AND column_name='approved_at') THEN ALTER TABLE public.payments ADD COLUMN approved_at TIMESTAMPTZ; END IF;
+END $$;
 
 -- ============================================================
 -- 5. TABLA: config
