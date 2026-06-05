@@ -196,6 +196,7 @@ async function loadUsers() {
                 <td>${u.points}</td>
                 <td>${u.created_at?.split('T')[0] || '-'}</td>
                 <td>
+                    <button class="btn-sm" onclick="adminConfirmPayment('${u.id}')" ${u.paid ? 'disabled' : ''}>Aprobar Usuario</button>
                     <button class="btn-sm btn-danger" onclick="deleteUser('${u.id}')">Eliminar</button>
                 </td>
             </tr>`).join('');
@@ -478,6 +479,14 @@ async function approveBetPayment(betId) {
         await getSB().from('bets').update({ paid: true, paid_at: new Date().toISOString() }).eq('id', betId);
         showModal('✅ Éxito', 'Apuesta marcada como pagada');
         loadPayments();
+    } catch (e) { showModal('Error', e.message); }
+}
+
+async function adminConfirmPayment(userId) {
+    try {
+        await DB.adminConfirmPayment(userId);
+        showModal('✅ Éxito', 'Usuario aprobado');
+        loadUsers();
     } catch (e) { showModal('Error', e.message); }
 }
 
