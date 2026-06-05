@@ -256,26 +256,47 @@ async function editBet(matchId) {
 
 async function payForBet(matchId) {
     try {
-        const bets = await DB.getUserBets(currentUser.id);
+        const user = await DB.getCurrentProfile();
+        if (!user) { showModal('Error', 'Debes iniciar sesión'); return; }
+        const bets = await DB.getUserBets(user.id);
         const bet = bets.find(b => b.match_id === matchId);
         if (!bet) { showModal('Error', 'Primero debes hacer la apuesta'); return; }
         if (bet.paid) { showModal('Información', 'Esta apuesta ya está pagada'); return; }
 
+        const t1 = getTeam(bet.matches?.team1);
+        const t2 = getTeam(bet.matches?.team2);
+
         showModal('Pagar Apuesta', `
-            <p><strong>Partido:</strong> ${getTeam(bet.matches?.team1)?.name || '?'} vs ${getTeam(bet.matches?.team2)?.name || '?'}</p>
+            <p><strong>Partido:</strong> ${t1.name} vs ${t2.name}</p>
             <p><strong>Tu apuesta:</strong> ${bet.prediction1} - ${bet.prediction2}</p>
-            <p><strong>Costo:</strong> $${CONFIG.costo_apuesta} COP</p>
+            <p><strong>Costo:</strong> $${(CONFIG.costo_apuesta || 5000).toLocaleString('es-CO')} COP</p>
             <hr>
-            <p>Transfiere <strong>$${CONFIG.costo_apuesta} COP</strong> a:</p>
+            <p>Transfiere a:</p>
             <p><strong>Nequi:</strong> ${CONFIG.nequi || '3218593047'}</p>
             <p><strong>Banco:</strong> ${CONFIG.banco || 'Bancolombia | Cuenta: 08585591247 | Titular: Polla Mundialista'}</p>
             <hr>
-            <input type="text" id="pay-notes" placeholder="Nombre del titular del envío" style="width:100%;padding:8px;margin:8px 0;border:1px solid #ddd;border-radius:6px;">
+            <p style="font-size:0.9em;color:#666">Después de pagar, ingresa tu nombre y confirma:</p>
+            <input type="text" id="pay-notes" placeholder="Tu nombre (para identificar el pago)" style="width:100%;padding:8px;margin:8px 0;border:1px solid #ddd;border-radius:6px;">
             <button onclick="submitBetPayment(${matchId})" style="width:100%;padding:10px;background:#4f46e5;color:#fff;border:none;border-radius:6px;cursor:pointer">
                 <i class="fas fa-paper-plane"></i> Ya envié el pago
             </button>
         `);
-    } catch (e) { showModal('Error', e.message); }
+    } catch (e) { console.error(e); showModal('Error', e.message); }
+}
+
+async function submitBetPayment(matchId) {
+    try {
+        const user = await DB.getCurrentProfile();
+        if (!user) return;
+        const bets = await DB.getUserBets(user.id);
+        const bet = bets.find(b => b.match_id === matchId);
+        if (!bet) return;
+        const notes = document.getElementById('pay-notes')?.value || user.nombre || 'Sin nombre';
+        await DB.submitPayment(user.id, 'Pago por apuesta #' + bet.id + ' - ' + notes, bet.id);
+        showModal('✅ Comprobante Enviado',
+            'El administrador recibió tu solicitud de pago. Revisa el panel de administración para aprobarlo.');
+        await renderMatches();
+    } catch (e) { console.error(e); showModal('Error', e.message); }
 }
 
 async function submitBetPayment(matchId) {
