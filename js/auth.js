@@ -37,11 +37,28 @@ document.addEventListener('supabase:ready', async function () {
     }
 
     // Redirigir si ya está logueado
-    const session = await Auth.getSession();
-    if (session) {
-        const profile = await DB.getProfile(session.user.id);
-        window.location.href = profile?.role === 'admin' ? 'admin.html' : 'dashboard.html';
-        return;
+    try {
+        const session = await Auth.getSession();
+        if (session) {
+            let profile;
+            try {
+                profile = await DB.getProfile(session.user.id);
+            } catch (e) {
+                // Perfil no existe - crearlo desde los metadatos de auth
+                const user = await Auth.getUser();
+                await getSB().from('profiles').insert({
+                    id: user.id,
+                    nombre: user.user_metadata?.nombre || user.email?.split('@')[0] || 'Usuario',
+                    email: user.email,
+                    telefono: user.user_metadata?.telefono || ''
+                });
+                profile = await DB.getProfile(session.user.id);
+            }
+            window.location.href = profile?.role === 'admin' ? 'admin.html' : 'dashboard.html';
+            return;
+        }
+    } catch (e) {
+        console.error('Session check error:', e);
     }
 
     // Toggle password
@@ -101,8 +118,20 @@ async function handleLogin(e) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
 
     try {
-        await Auth.login(email, password);
-        const profile = await DB.getCurrentProfile();
+        const user = await Auth.login(email, password);
+        let profile;
+        try {
+            profile = await DB.getCurrentProfile();
+        } catch (e) {
+            // Perfil no existe - crearlo
+            await getSB().from('profiles').insert({
+                id: user.id,
+                nombre: user.user_metadata?.nombre || email.split('@')[0],
+                email: email,
+                telefono: user.user_metadata?.telefono || ''
+            });
+            profile = await DB.getCurrentProfile();
+        }
         window.location.href = profile?.role === 'admin' ? 'admin.html' : 'dashboard.html';
     } catch (err) {
         btn.disabled = false;

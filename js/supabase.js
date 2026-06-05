@@ -382,12 +382,23 @@ async function checkAuth() {
         return null;
     }
     try {
-        const profile = await DB.getProfile(session.user.id);
-        return profile;
+        return await DB.getProfile(session.user.id);
     } catch (e) {
-        console.error('Error cargando perfil:', e);
-        window.location.href = 'login.html';
-        return null;
+        // Perfil no existe - crearlo desde metadata de auth
+        try {
+            const user = await Auth.getUser();
+            await getSB().from('profiles').insert({
+                id: user.id,
+                nombre: user.user_metadata?.nombre || user.email?.split('@')[0] || 'Usuario',
+                email: user.email,
+                telefono: user.user_metadata?.telefono || ''
+            });
+            return await DB.getProfile(session.user.id);
+        } catch (e2) {
+            console.error('Error creando perfil:', e2);
+            window.location.href = 'login.html';
+            return null;
+        }
     }
 }
 
