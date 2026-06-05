@@ -13,7 +13,6 @@ document.addEventListener('supabase:ready', async function () {
 
     document.getElementById('user-name').textContent  = currentUser.nombre;
     document.getElementById('user-email').textContent = currentUser.email;
-    setStatusBadge(document.getElementById('user-status'), currentUser.paid);
 
     // Estadísticas
     document.getElementById('dash-points').textContent = currentUser.points;
@@ -27,9 +26,21 @@ document.addEventListener('supabase:ready', async function () {
         document.getElementById('dash-position').textContent = pos > 0 ? `#${pos}` : '--';
     } catch (e) {}
 
-    // Alerta de pago
-    const payAlert = document.getElementById('payment-alert');
-    if (payAlert) payAlert.style.display = currentUser.paid ? 'none' : 'block';
+    // Contar apuestas pendientes de pago
+    try {
+        const myBets = await DB.getUserBets(currentUser.id);
+        const unpaid = myBets.filter(b => !b.paid).length;
+        const payAlert = document.getElementById('payment-alert');
+        if (payAlert) {
+            if (unpaid > 0) {
+                payAlert.style.display = 'block';
+                payAlert.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Tienes <strong>${unpaid} apuesta${unpaid > 1 ? 's' : ''}</strong> pendiente${unpaid > 1 ? 's' : ''} de pago. <a href="apuestas.html" style="color:#fff;text-decoration:underline">Pagar ahora</a>`;
+            } else {
+                payAlert.style.display = 'none';
+            }
+        }
+        setStatusBadge(document.getElementById('user-status'), unpaid);
+    } catch (e) {}
 
     // Cargar contenido
     await Promise.all([
@@ -71,10 +82,10 @@ function setupSidebar(user) {
     document.getElementById('logout-btn')?.addEventListener('click', e => { e.preventDefault(); logout(); });
 }
 
-function setStatusBadge(el, paid) {
+function setStatusBadge(el, unpaid) {
     if (!el) return;
-    el.textContent  = paid ? '✅ Pago Confirmado' : '⏳ Pendiente de Pago';
-    el.className    = paid ? 'user-status paid' : 'user-status pending';
+    el.textContent  = unpaid > 0 ? `⏳ ${unpaid} sin pagar` : '✅ Todas pagadas';
+    el.className    = unpaid > 0 ? 'user-status pending' : 'user-status paid';
 }
 
 async function renderDashUpcoming() {
@@ -188,11 +199,10 @@ async function renderProgressChart() {
 function showPaymentInfo() {
     showModal('Información de Pago', `
         <div class="payment-details">
-            <p><strong>Inscripción:</strong> $${CONFIG.valor_apuesta} USD</p><br>
-            <p><strong>Transferencia Bancaria:</strong></p>
-            <p>Banco: Bancolombia | Cuenta: 1234567890 | Titular: Polla Mundialista</p><br>
-            <p><strong>Nequi / Daviplata:</strong> +57 300 123 4567</p>
-            <p>Enviar comprobante por WhatsApp o subir en tu perfil</p>
+            <p><strong>Costo por apuesta:</strong> $${(CONFIG.costo_apuesta || 5000).toLocaleString('es-CO')} COP</p>
+            <p><strong>Nequi:</strong> ${CONFIG.nequi || '3218593047'}</p>
+            <p><strong>Banco:</strong> ${CONFIG.banco || 'Bancolombia | Cuenta: 08585591247 | Titular: Polla Mundialista'}</p>
+            <p>Después de apostar, ve a <a href="apuestas.html">Mis Apuestas</a> y paga cada partido.</p>
         </div>
     `);
 }

@@ -14,7 +14,6 @@ document.addEventListener('supabase:ready', async function () {
 
     document.getElementById('user-name').textContent  = currentUser.nombre;
     document.getElementById('user-email').textContent = currentUser.email;
-    setStatusBadge(document.getElementById('user-status'), currentUser.paid);
 
     // Filtros
     document.getElementById('filter-phase')?.addEventListener('change', () => renderMatches());
@@ -23,6 +22,13 @@ document.addEventListener('supabase:ready', async function () {
 
     await renderMatches();
     await updateSummary();
+
+    // Sidebar payment status
+    try {
+        const myBets = await DB.getUserBets(currentUser.id);
+        const unpaid = myBets.filter(b => !b.paid).length;
+        setStatusBadge(document.getElementById('user-status'), unpaid);
+    } catch (e) {}
 
     // REALTIME: recargar si cambia un partido o apuesta
     Realtime.onMatchesChange(() => renderMatches());
@@ -47,10 +53,10 @@ function setupSidebar() {
     document.getElementById('logout-btn')?.addEventListener('click', e => { e.preventDefault(); logout(); });
 }
 
-function setStatusBadge(el, paid) {
+function setStatusBadge(el, unpaid) {
     if (!el) return;
-    el.textContent = paid ? '✅ Pago Confirmado' : '⏳ Pendiente de Pago';
-    el.className   = paid ? 'user-status paid' : 'user-status pending';
+    el.textContent  = unpaid > 0 ? `⏳ ${unpaid} sin pagar` : '✅ Todas pagadas';
+    el.className    = unpaid > 0 ? 'user-status pending' : 'user-status paid';
 }
 
 async function renderMatches() {
@@ -106,11 +112,15 @@ async function renderMatches() {
                     </div>`;
             } else if (isFin && !bet) {
                 betSection = `<div class="bet-result-display wrong"><span>No apostaste</span></div>`;
-            } else if (isOpen) {
+                } else if (isOpen) {
                 if (bet) {
+                    const payIcon = bet.paid ? '✅ Pagado' : '⏳ Pendiente pago';
+                    const payBtn = bet.paid ? '' : `<button class="btn-sm" onclick="payForBet(${match.id})"><i class="fas fa-credit-card"></i> Pagar $${CONFIG.costo_apuesta}</button>`;
                     betSection = `
                         <div class="bet-placed-display">
                             <span><i class="fas fa-check-circle"></i> Apostado: ${bet.prediction1} - ${bet.prediction2}</span>
+                            <span class="bet-pay-status ${bet.paid ? 'paid' : 'pending'}">${payIcon}</span>
+                            ${payBtn}
                             <button class="btn-edit-bet" onclick="editBet(${match.id})">
                                 <i class="fas fa-edit"></i> Editar
                             </button>
@@ -127,11 +137,11 @@ async function renderMatches() {
                                 <label>${t2.name}</label>
                                 <input type="number" id="score-${match.id}-2" min="0" max="20" placeholder="0">
                             </div>
-                            <button class="btn-bet" onclick="openBetModal(${match.id})" ${!currentUser.paid ? 'disabled' : ''}>
+                            <button class="btn-bet" onclick="openBetModal(${match.id})">
                                 <i class="fas fa-paper-plane"></i> Apostar
                             </button>
                         </div>
-                        ${!currentUser.paid ? '<p class="payment-warning"><i class="fas fa-lock"></i> Realiza el pago para apostar</p>' : ''}`;
+                        <p class="payment-info-bet"><i class="fas fa-info-circle"></i> Cada apuesta cuesta <strong>$${CONFIG.costo_apuesta} COP</strong>. Debes pagar después de apostar.</p>`;
                 }
             } else {
                 betSection = `<div class="bet-closed"><span><i class="fas fa-lock"></i> Apuestas cerradas</span></div>`;
@@ -241,6 +251,43 @@ async function editBet(matchId) {
         } else {
             openBetModal(matchId);
         }
+    } catch (e) { showModal('Error', e.message); }
+}
+
+async function payForBet(matchId) {
+    try {
+        const bets = await DB.getUserBets(currentUser.id);
+        const bet = bets.find(b => b.match_id === matchId);
+        if (!bet) { showModal('Error', 'Primero debes hacer la apuesta'); return; }
+        if (bet.paid) { showModal('Información', 'Esta apuesta ya está pagada'); return; }
+
+        showModal('Pagar Apuesta', `
+            <p><strong>Partido:</strong> ${getTeam(bet.matches?.team1)?.name || '?'} vs ${getTeam(bet.matches?.team2)?.name || '?'}</p>
+            <p><strong>Tu apuesta:</strong> ${bet.prediction1} - ${bet.prediction2}</p>
+            <p><strong>Costo:</strong> $${CONFIG.costo_apuesta} COP</p>
+            <hr>
+            <p>Transfiere <strong>$${CONFIG.costo_apuesta} COP</strong> a:</p>
+            <p><strong>Nequi:</strong> ${CONFIG.nequi || '3218593047'}</p>
+            <p><strong>Banco:</strong> ${CONFIG.banco || 'Bancolombia | Cuenta: 08585591247 | Titular: Polla Mundialista'}</p>
+            <hr>
+            <input type="text" id="pay-notes" placeholder="Nombre del titular del envío" style="width:100%;padding:8px;margin:8px 0;border:1px solid #ddd;border-radius:6px;">
+            <button onclick="submitBetPayment(${matchId})" style="width:100%;padding:10px;background:#4f46e5;color:#fff;border:none;border-radius:6px;cursor:pointer">
+                <i class="fas fa-paper-plane"></i> Ya envié el pago
+            </button>
+        `);
+    } catch (e) { showModal('Error', e.message); }
+}
+
+async function submitBetPayment(matchId) {
+    try {
+        const bets = await DB.getUserBets(currentUser.id);
+        const bet = bets.find(b => b.match_id === matchId);
+        if (!bet) return;
+        const notes = document.getElementById('pay-notes')?.value || '';
+        await DB.submitPayment(currentUser.id, notes, bet.id);
+        // Marcar la apuesta como pendiente de pago (el admin lo aprobará)
+        showModal('✅ Comprobante Enviado', 'El administrador revisará tu pago y lo activará pronto.');
+        await renderMatches();
     } catch (e) { showModal('Error', e.message); }
 }
 

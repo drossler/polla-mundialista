@@ -13,10 +13,14 @@ document.addEventListener('supabase:ready', async function () {
 
     document.getElementById('user-name').textContent  = currentUser.nombre;
     document.getElementById('user-email').textContent = currentUser.email;
-    setStatusBadge(document.getElementById('user-status'), currentUser.paid);
 
     document.getElementById('results-phase')?.addEventListener('change', () => renderResults());
     await renderResults();
+
+    try {
+        const bets = await DB.getUserBets(currentUser.id);
+        setStatusBadge(document.getElementById('user-status'), bets.filter(b => !b.paid).length);
+    } catch (e) {}
 
     Realtime.onMatchesChange(() => renderResults());
     Realtime.onUserBetsChange(currentUser.id, () => renderResults());
@@ -35,10 +39,10 @@ function setupSidebar() {
     document.getElementById('logout-btn')?.addEventListener('click', e => { e.preventDefault(); logout(); });
 }
 
-function setStatusBadge(el, paid) {
+function setStatusBadge(el, unpaid) {
     if (!el) return;
-    el.textContent = paid ? '✅ Pago Confirmado' : '⏳ Pendiente de Pago';
-    el.className   = paid ? 'user-status paid' : 'user-status pending';
+    el.textContent  = unpaid > 0 ? `⏳ ${unpaid} sin pagar` : '✅ Todas pagadas';
+    el.className    = unpaid > 0 ? 'user-status pending' : 'user-status paid';
 }
 
 async function renderResults() {

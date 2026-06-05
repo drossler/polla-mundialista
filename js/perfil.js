@@ -19,11 +19,6 @@ document.addEventListener('supabase:ready', async function () {
     // Perfil info
     document.getElementById('profile-name').textContent  = currentUser.nombre;
     document.getElementById('profile-email').textContent = currentUser.email;
-    const profStatus = document.getElementById('profile-status');
-    if (profStatus) {
-        profStatus.textContent = currentUser.paid ? '✅ Pago Confirmado' : '⏳ Pendiente de Pago';
-        profStatus.className   = currentUser.paid ? 'profile-status paid' : 'profile-status pending';
-    }
 
     // Formulario
     document.getElementById('edit-name').value  = currentUser.nombre;
@@ -57,15 +52,23 @@ document.addEventListener('supabase:ready', async function () {
     } catch (e) {}
 
     // Estado de pago
-    const payCard = document.getElementById('payment-status-card');
-    if (payCard && currentUser.paid) {
-        payCard.innerHTML = `
-            <div class="status-badge paid">
-                <i class="fas fa-check-circle"></i> Pago Confirmado
-            </div>
-            <p>Fecha de pago: ${currentUser.paid_date || '-'}</p>
-            <p>Monto: $${CONFIG.valor_apuesta} USD</p>`;
-    }
+    try {
+        const myBets = await DB.getUserBets(currentUser.id);
+        const paidBets = myBets.filter(b => b.paid).length;
+        const pendingBets = myBets.filter(b => !b.paid).length;
+        const payCard = document.getElementById('payment-status-card');
+        if (payCard) {
+            payCard.innerHTML = `
+                <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center">
+                    <div class="mini-stat"><strong>✅ Pagadas:</strong> ${paidBets}</div>
+                    <div class="mini-stat"><strong>⏳ Pendientes:</strong> ${pendingBets}</div>
+                    <div class="mini-stat"><strong>💰 Costo:</strong> $${(CONFIG.costo_apuesta || 5000).toLocaleString('es-CO')} COP</div>
+                </div>`;
+        }
+        document.getElementById('pay-costo').textContent = (CONFIG.costo_apuesta || 5000).toLocaleString('es-CO');
+        document.getElementById('pay-nequi').textContent = CONFIG.nequi || '+57 300 123 4567';
+        document.getElementById('pay-banco').textContent = CONFIG.banco || 'Bancolombia | Cuenta: 1234567890 | Titular: Polla Mundialista';
+    } catch (e) {}
 
     // Formulario de perfil
     document.getElementById('profile-form')?.addEventListener('submit', handleProfileUpdate);

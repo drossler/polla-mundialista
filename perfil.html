@@ -89,33 +89,30 @@
                 <div class="profile-card payment-card">
                     <h3><i class="fas fa-credit-card"></i> Información de Pago</h3>
                     <div class="payment-status" id="payment-status-card">
-                        <div class="status-badge pending">
-                            <i class="fas fa-clock"></i> Pendiente de Pago
+                        <div style="padding:16px;text-align:center">
+                            <p style="font-size:1.1em;margin-bottom:8px">💰 <strong>$<span id="pay-costo">5,000</span> COP</strong> por cada apuesta</p>
+                            <p style="color:#666;font-size:0.9em">Pagas solo por los partidos en los que apuestes.</p>
                         </div>
-                        <p>Inscripción: <strong>$10 USD</strong></p>
                         <div class="payment-methods">
-                            <h4>Métodos de Pago:</h4>
+                            <h4>Datos para pagar:</h4>
+                            <div class="method">
+                                <i class="fas fa-mobile-alt"></i>
+                                <div>
+                                    <strong>Nequi</strong>
+                                    <p id="pay-nequi">3218593047</p>
+                                </div>
+                            </div>
                             <div class="method">
                                 <i class="fas fa-university"></i>
                                 <div>
                                     <strong>Transferencia Bancaria</strong>
-                                    <p>Banco: Bancolombia</p>
-                                    <p>Cuenta: 1234567890</p>
-                                    <p>Titular: Polla Mundialista</p>
-                                </div>
-                            </div>
-                            <div class="method">
-                                <i class="fab fa-whatsapp"></i>
-                                <div>
-                                    <strong>Nequi / Daviplata</strong>
-                                    <p>Tel: +57 300 123 4567</p>
-                                    <p>Enviar comprobante por WhatsApp</p>
+                                    <p id="pay-banco">Bancolombia | Cuenta: 08585591247 | Titular: Polla Mundialista</p>
                                 </div>
                             </div>
                         </div>
-                        <button class="btn-mark-paid" onclick="markAsPaid()">
-                            <i class="fas fa-check"></i> Marcar como Pagado (Admin)
-                        </button>
+                        <a href="apuestas.html" class="btn-mark-paid" style="display:inline-block;text-align:center;text-decoration:none;margin-top:12px">
+                            <i class="fas fa-futbol"></i> Ir a Mis Apuestas
+                        </a>
                     </div>
                 </div>
 

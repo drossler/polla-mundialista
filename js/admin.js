@@ -97,14 +97,14 @@ async function loadDashboard() {
             DB.getMatches()
         ]);
 
-        const paid    = profiles.filter(u => u.paid).length;
-        const pending = profiles.filter(u => !u.paid).length;
-        const total   = paid * CONFIG.valor_apuesta;
+        const paidUsers = profiles.filter(u => u.paid).length;
+        const allBets   = await DB.getAllBets();
+        const totalRec  = (allBets.filter(b => b.paid).length) * (CONFIG.costo_apuesta || 5000);
 
         document.getElementById('admin-total-users').textContent   = profiles.length;
-        document.getElementById('admin-paid-users').textContent    = paid;
-        document.getElementById('admin-pending-users').textContent = pending;
-        document.getElementById('admin-total-money').textContent   = '$' + total;
+        document.getElementById('admin-paid-users').textContent    = paidUsers;
+        document.getElementById('admin-pending-users').textContent = profiles.length - paidUsers;
+        document.getElementById('admin-total-money').textContent   = '$' + totalRec.toLocaleString('es-CO');
 
         const pendingPays = payments.filter(p => !p.approved);
         document.getElementById('admin-notifications').textContent = pendingPays.length;
@@ -196,7 +196,6 @@ async function loadUsers() {
                 <td>${u.points}</td>
                 <td>${u.created_at?.split('T')[0] || '-'}</td>
                 <td>
-                    <button class="btn-sm" onclick="adminConfirmPayment('${u.id}')" ${u.paid ? 'disabled' : ''}>Confirmar Pago</button>
                     <button class="btn-sm btn-danger" onclick="deleteUser('${u.id}')">Eliminar</button>
                 </td>
             </tr>`).join('');
@@ -260,6 +259,7 @@ async function loadBets() {
             const t2 = getTeam(b.matches?.team2 || '');
             const result = b.matches?.score1 != null ? `${b.matches.score1}-${b.matches.score2}` : 'Pendiente';
             const pts    = b.points_earned > 0 ? `+${b.points_earned}` : b.result_type === 'pending' ? '-' : '0';
+            const payStatus = b.paid ? '✅ Pagada' : '⏳ Pendiente';
             return `
                 <tr>
                     <td>${b.profiles?.nombre || '-'}</td>
@@ -267,6 +267,7 @@ async function loadBets() {
                     <td>${b.prediction1}-${b.prediction2}</td>
                     <td>${result}</td>
                     <td>${pts}</td>
+                    <td><span class="status-badge ${b.paid ? 'paid' : 'pending'}">${payStatus}</span></td>
                     <td>${b.created_at?.split('T')[0] || '-'}</td>
                 </tr>`;
         }).join('');
@@ -286,13 +287,18 @@ async function loadResultsEntry() {
                 return `<option value="${m.id}">${m.id} — ${t1.name} vs ${t2.name} (${formatDate(m.match_date)})</option>`;
             }).join('');
 
-        select.onchange = function () {
+        select.onchange = async function () {
             const m = matches.find(x => x.id === parseInt(this.value));
             if (m) {
                 const t1 = getTeam(m.team1);
                 const t2 = getTeam(m.team2);
                 document.getElementById('result-team1-name').textContent = t1.name;
                 document.getElementById('result-team2-name').textContent = t2.name;
+                document.getElementById('result-team1-score').value = '';
+                document.getElementById('result-team2-score').value = '';
+                await showMatchBets(m.id);
+            } else {
+                document.getElementById('result-bets-container').style.display = 'none';
             }
         };
     } catch (e) { console.error(e); }
@@ -321,6 +327,36 @@ async function saveMatchResult() {
     } finally {
         if (btn) { btn.disabled = false; btn.innerHTML = 'Guardar Resultado'; }
     }
+}
+
+async function showMatchBets(matchId) {
+    const container = document.getElementById('result-bets-container');
+    const tbody = document.getElementById('result-bets-body');
+    if (!container || !tbody) return;
+    try {
+        const allBets = await DB.getAllBets();
+        const matchBets = allBets.filter(b => b.match_id === matchId);
+        if (matchBets.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        container.style.display = 'block';
+        tbody.innerHTML = matchBets.map(b => {
+            const name = b.profiles?.nombre || 'Usuario';
+            const paidStatus = b.paid ? '✅ Sí' : '❌ No';
+            const payoutBtn = (b.result_type === 'exact' || b.result_type === 'winner') && !b.payout
+                ? `<button class="btn-sm" onclick="payUserPayout('${b.id}')">Pagar x Nequi</button>`
+                : b.payout ? '✅ Pagado' : '-';
+            return `
+                <tr>
+                    <td>${name}</td>
+                    <td>${b.prediction1} - ${b.prediction2}</td>
+                    <td>${b.points_earned || 0}</td>
+                    <td>${paidStatus}</td>
+                    <td>${payoutBtn}</td>
+                </tr>`;
+        }).join('');
+    } catch (e) { console.error('showMatchBets error:', e); container.style.display = 'none'; }
 }
 
 async function recalculateAllPoints() {
@@ -362,56 +398,104 @@ async function loadAdminLeaderboard() {
 // ---- PAGOS ----
 async function loadPayments() {
     try {
-        const [profiles, payments] = await Promise.all([
+        const [profiles, payments, allBets] = await Promise.all([
             DB.getAllProfiles(),
-            DB.getPayments()
+            DB.getPayments(),
+            DB.getAllBets()
         ]);
-        const paid    = profiles.filter(u => u.paid).length;
-        const pending = profiles.filter(u => !u.paid).length;
-        const total   = paid * CONFIG.valor_apuesta;
+        const totalRecaudado = payments.filter(p => p.approved && !p.payout).reduce((s, p) => s + Number(p.amount || CONFIG.costo_apuesta || 5000), 0);
 
-        document.getElementById('pay-confirmed').textContent = paid;
-        document.getElementById('pay-pending').textContent   = pending;
-        document.getElementById('pay-total').textContent     = '$' + total;
+        document.getElementById('pay-confirmed').textContent = payments.filter(p => p.approved && !p.payout).length;
+        document.getElementById('pay-pending').textContent   = payments.filter(p => !p.approved).length;
+        document.getElementById('pay-total').textContent     = '$' + totalRecaudado.toLocaleString('es-CO');
 
         const tbody = document.getElementById('payments-table-body');
         if (!tbody) return;
 
-        // Mostrar comprobantes + estado general de usuarios
-        tbody.innerHTML = profiles.map(u => {
-            const userPayments = payments.filter(p => p.user_id === u.id);
-            const latestPay    = userPayments[0];
-            return `
-                <tr>
-                    <td>${u.nombre}</td>
-                    <td>${u.email}</td>
-                    <td>$${CONFIG.valor_apuesta}</td>
-                    <td><span class="status-badge ${u.paid ? 'paid' : 'pending'}">${u.paid ? 'Confirmado' : 'Pendiente'}</span></td>
-                    <td>${u.paid_date || '-'}</td>
-                    <td>${latestPay?.comprobante_notes || (latestPay ? 'Enviado' : '-')}</td>
+        // Mostrar apuestas pendientes de pago y pagos recibidos
+        const unpaidBets = allBets.filter(b => !b.paid && b.matches?.status === 'upcoming');
+
+        tbody.innerHTML = [
+            ...unpaidBets.map(b => {
+                const t1 = getTeam(b.matches?.team1 || '');
+                const t2 = getTeam(b.matches?.team2 || '');
+                return `
+                <tr style="background:#fff7ed">
+                    <td><strong>${b.profiles?.nombre || '-'}</strong></td>
+                    <td>${b.profiles?.email || ''}</td>
+                    <td>$${CONFIG.costo_apuesta?.toLocaleString('es-CO') || '5,000'}</td>
+                    <td><span class="status-badge pending">Sin pagar</span></td>
+                    <td>-</td>
+                    <td>${t1.name} vs ${t2.name} (${b.prediction1}-${b.prediction2})</td>
                     <td>
-                        <button class="btn-sm" onclick="confirmPayment('${u.id}')" ${u.paid ? 'disabled' : ''}>Confirmar</button>
-                        <button class="btn-sm btn-danger" onclick="rejectUserPayment('${u.id}')" ${!u.paid ? 'disabled' : ''}>Rechazar</button>
+                        <button class="btn-sm" onclick="approveBetPayment('${b.id}')">Aprobar pago</button>
                     </td>
                 </tr>`;
-        }).join('');
+            }),
+            ...payments.map(p => {
+                const t1 = getTeam(p.bets?.matches?.team1 || '');
+                const t2 = getTeam(p.bets?.matches?.team2 || '');
+                const matchInfo = p.bets ? `${t1.name} vs ${t2.name}` : 'General';
+                return `
+                <tr>
+                    <td>${p.profiles?.nombre || '-'}</td>
+                    <td>${p.profiles?.email || ''}</td>
+                    <td>$${Number(p.amount || CONFIG.costo_apuesta || 5000).toLocaleString('es-CO')}</td>
+                    <td><span class="status-badge ${p.approved ? 'paid' : 'pending'}">${p.approved ? 'Aprobado' : 'Pendiente'}</span></td>
+                    <td>${p.created_at?.split('T')[0] || '-'}</td>
+                    <td>${matchInfo} ${p.comprobante_notes ? '— ' + p.comprobante_notes : ''}</td>
+                    <td>
+                        ${!p.approved ? `<button class="btn-sm" onclick="approvePayment('${p.id}', '${p.user_id}', '${p.bet_id || ''}')">Aprobar</button>` : ''}
+                        ${p.payout ? '✅ Pagado' : ''}
+                    </td>
+                </tr>`;
+            })
+        ].join('');
     } catch (e) { console.error('Payments error:', e); }
 }
 
-async function confirmPayment(userId) {
+async function approvePayment(paymentId, userId, betId) {
     try {
-        await DB.adminConfirmPayment(userId);
-        showModal('✅ Éxito', 'Pago confirmado');
+        await DB.approvePayment(paymentId, adminUser.id, betId || null);
+        showModal('✅ Éxito', 'Pago aprobado. Apuesta marcada como pagada.');
         loadPayments();
         loadDashboard();
     } catch (e) { showModal('Error', e.message); }
 }
 
-async function rejectUserPayment(userId) {
-    if (!confirm('¿Rechazar y desactivar pago del usuario?')) return;
+async function approveBetPayment(betId) {
+    // Crear un pago automático para esta apuesta y aprobarlo
     try {
-        await DB.updateProfile(userId, { paid: false, paid_date: null });
-        showModal('✅ Éxito', 'Pago rechazado');
+        await getSB().from('payments').insert({
+            user_id: adminUser.id,
+            bet_id: betId,
+            comprobante_notes: 'Aprobado manual por admin',
+            amount: CONFIG.costo_apuesta || 5000,
+            approved: true,
+            approved_by: adminUser.id,
+            approved_at: new Date().toISOString()
+        });
+        await getSB().from('bets').update({ paid: true, paid_at: new Date().toISOString() }).eq('id', betId);
+        showModal('✅ Éxito', 'Apuesta marcada como pagada');
+        loadPayments();
+    } catch (e) { showModal('Error', e.message); }
+}
+
+async function payUserPayout(betId) {
+    if (!confirm('¿Confirmas que pagaste esta apuesta por Nequi?')) return;
+    try {
+        await DB.payBetPayout(betId, adminUser.id);
+        showModal('✅ Pago Registrado', 'Pago por Nequi registrado exitosamente.');
+        loadPayments();
+        loadAdminLeaderboard();
+    } catch (e) { showModal('Error', e.message); }
+}
+
+async function rejectPayment(paymentId) {
+    if (!confirm('¿Rechazar este pago?')) return;
+    try {
+        await DB.rejectPayment(paymentId);
+        showModal('✅ Pago rechazado');
         loadPayments();
     } catch (e) { showModal('Error', e.message); }
 }
@@ -423,10 +507,6 @@ async function deleteUser(userId) {
         showModal('✅ Éxito', 'Usuario eliminado');
         loadUsers();
     } catch (e) { showModal('Error', e.message); }
-}
-
-async function adminConfirmPayment(userId) {
-    await confirmPayment(userId);
 }
 
 // ---- EDITAR PARTIDO ----
@@ -478,7 +558,10 @@ async function loadSettings() {
     try {
         const config = await DB.getConfig();
         document.getElementById('setting-name').value         = config.nombre_polla;
-        document.getElementById('setting-cost').value         = config.valor_apuesta;
+        document.getElementById('setting-cost').value         = config.costo_apuesta || config.valor_apuesta || 5000;
+        document.getElementById('setting-moneda').value       = config.moneda || 'COP';
+        document.getElementById('setting-nequi').value        = config.nequi || '3218593047';
+        document.getElementById('setting-banco').value        = config.banco || 'Bancolombia | Cuenta: 08585591247 | Titular: Polla Mundialista';
         document.getElementById('setting-exact').value        = config.points_exact;
         document.getElementById('setting-winner').value       = config.points_winner;
         document.getElementById('setting-multiplier').value   = config.multiplier;
@@ -493,7 +576,10 @@ async function loadSettings() {
             try {
                 await DB.updateConfig({
                     nombre_polla:  document.getElementById('setting-name').value,
-                    valor_apuesta: parseFloat(document.getElementById('setting-cost').value),
+                    costo_apuesta: parseFloat(document.getElementById('setting-cost').value),
+                    moneda:        document.getElementById('setting-moneda').value,
+                    nequi:         document.getElementById('setting-nequi').value,
+                    banco:         document.getElementById('setting-banco').value,
                     points_exact:  parseInt(document.getElementById('setting-exact').value),
                     points_winner: parseInt(document.getElementById('setting-winner').value),
                     multiplier:    parseFloat(document.getElementById('setting-multiplier').value),

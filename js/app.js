@@ -144,12 +144,11 @@ async function handleRegistration(e) {
         await Auth.register(email, password, nombre, telefono);
         showModal('¡Registro Exitoso!', `
             Bienvenido <strong>${nombre}</strong>! Tu cuenta ha sido creada.<br><br>
-            <strong>Próximo paso:</strong> Realiza el pago de <strong>$${CONFIG.valor_apuesta} USD</strong>
-            para activar tu participación.<br><br>
+            Cada apuesta cuesta <strong>$${(CONFIG.costo_apuesta || 5000).toLocaleString('es-CO')} COP</strong>.
+            Después de registrarte, ingresa a <strong>Mis Apuestas</strong> y paga cada partido por separado.<br><br>
             <div class="payment-info">
-                <p><strong>Transferencia Bancaria:</strong></p>
-                <p>Banco: Bancolombia | Cuenta: 1234567890 | Titular: Polla Mundialista</p><br>
-                <p><strong>Nequi / Daviplata:</strong> +57 300 123 4567</p>
+                <p><strong>Nequi:</strong> ${CONFIG.nequi || '3218593047'}</p>
+                <p><strong>Banco:</strong> ${CONFIG.banco || 'Bancolombia | Cuenta: 08585591247 | Titular: Polla Mundialista'}</p>
             </div><br>
             <a href="login.html" class="btn-primary">Ir al Login</a>
         `);

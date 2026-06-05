@@ -112,7 +112,7 @@ const DB = {
 
     async getPaidProfiles() {
         const { data, error } = await getSB()
-            .from('profiles').select('*').eq('paid', true).order('points', { ascending: false });
+            .from('profiles').select('*').order('points', { ascending: false });
         if (error) throw error;
         return data;
     },
@@ -175,50 +175,66 @@ const DB = {
 
     // ---- PAGOS ----
     async getPayments(userId = null) {
-        let q = getSB().from('payments').select('*, profiles(nombre,email)').order('created_at', { ascending: false });
+        let q = getSB().from('payments').select('*, profiles(nombre,email), bets(matches(team1,team2))').order('created_at', { ascending: false });
         if (userId) q = q.eq('user_id', userId);
         const { data, error } = await q;
         if (error) throw error;
         return data;
     },
 
-    async submitPayment(userId, notes = '') {
+    async submitPayment(userId, notes = '', betId = null) {
+        const payload = { user_id: userId, comprobante_notes: notes };
+        if (betId) payload.bet_id = betId;
         const { data, error } = await getSB()
             .from('payments')
-            .insert({ user_id: userId, comprobante_notes: notes })
+            .insert(payload)
             .select().single();
         if (error) throw error;
         return data;
     },
 
-    async approvePayment(paymentId, adminId) {
-        // Obtener userId del pago
+    async approvePayment(paymentId, adminId, betId) {
         const { data: pay, error: e1 } = await getSB()
-            .from('payments').select('user_id').eq('id', paymentId).single();
+            .from('payments').select('user_id, bet_id').eq('id', paymentId).single();
         if (e1) throw e1;
 
-        // Aprobar pago
-        const { error: e2 } = await getSB()
+        const targetBetId = betId || pay?.bet_id;
+
+        await getSB()
             .from('payments')
             .update({ approved: true, approved_by: adminId, approved_at: new Date().toISOString() })
             .eq('id', paymentId);
-        if (e2) throw e2;
 
-        // Marcar usuario como pagado
-        const { error: e3 } = await getSB()
-            .from('profiles')
-            .update({ paid: true, paid_date: new Date().toISOString().split('T')[0] })
-            .eq('id', pay.user_id);
-        if (e3) throw e3;
+        // Si el pago está asociado a una apuesta, marcar esa apuesta como pagada
+        if (targetBetId) {
+            await getSB()
+                .from('bets')
+                .update({ paid: true, paid_at: new Date().toISOString() })
+                .eq('id', targetBetId);
+        }
+    },
+
+    async payBetPayout(betId, adminId) {
+        await getSB()
+            .from('bets')
+            .update({ payout: true, payout_at: new Date().toISOString() })
+            .eq('id', betId);
+        await getSB()
+            .from('payments')
+            .insert({
+                user_id: adminId,
+                bet_id: betId,
+                comprobante_notes: 'Pago por partido vía Nequi',
+                approved: true,
+                approved_by: adminId,
+                approved_at: new Date().toISOString(),
+                payout: true,
+                payout_at: new Date().toISOString()
+            });
     },
 
     async rejectPayment(paymentId, userId) {
-        const { error: e1 } = await getSB()
-            .from('payments').delete().eq('id', paymentId);
-        if (e1) throw e1;
-        const { error: e2 } = await getSB()
-            .from('profiles').update({ paid: false, paid_date: null }).eq('id', userId);
-        if (e2) throw e2;
+        await getSB().from('payments').delete().eq('id', paymentId);
     },
 
     // ---- CONFIG ----

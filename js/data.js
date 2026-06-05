@@ -56,7 +56,8 @@ const TEAMS = {
 
 // CONFIG por defecto (se sobreescribirá con datos de Supabase)
 const CONFIG_DEFAULT = {
-    valor_apuesta: 10,
+    costo_apuesta: 5000,
+    moneda: 'COP',
     points_exact: 5,
     points_winner: 3,
     multiplier: 2,
@@ -65,7 +66,9 @@ const CONFIG_DEFAULT = {
     prize_third: 15,
     prize_last: 10,
     active: true,
-    nombre_polla: 'Polla Mundialista Familiar 2026'
+    nombre_polla: 'Polla Mundialista 2026',
+    nequi: '3218593047',
+    banco: 'Bancolombia | Cuenta: 08585591247 | Titular: Polla Mundialista'
 };
 
 // Variable global de config (se carga desde Supabase al iniciar)
@@ -73,7 +76,10 @@ let CONFIG = { ...CONFIG_DEFAULT };
 
 async function loadConfig() {
     try {
-        CONFIG = await DB.getConfig();
+        const c = await DB.getConfig();
+        CONFIG = { ...CONFIG_DEFAULT, ...c };
+        // Compatibilidad: si la DB devuelve valor_apuesta pero no costo_apuesta
+        if (!CONFIG.costo_apuesta && c.valor_apuesta) CONFIG.costo_apuesta = c.valor_apuesta;
     } catch (e) {
         CONFIG = { ...CONFIG_DEFAULT };
     }

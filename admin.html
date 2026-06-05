@@ -246,6 +246,7 @@
                                     <th>Predicción</th>
                                     <th>Resultado Real</th>
                                     <th>Puntos</th>
+                                    <th>Pago</th>
                                     <th>Fecha</th>
                                 </tr>
                             </thead>
@@ -288,6 +289,23 @@
                             <button class="btn-submit" onclick="saveMatchResult()">
                                 <i class="fas fa-save"></i> Guardar Resultado y Calcular Puntos
                             </button>
+                        </div>
+                        <div id="result-bets-container" style="margin-top:20px;display:none">
+                            <h4 style="margin-bottom:12px"><i class="fas fa-list"></i> Apuestas del Partido</h4>
+                            <div style="overflow-x:auto">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Usuario</th>
+                                            <th>Apuesta</th>
+                                            <th>Puntos</th>
+                                            <th>Pagado?</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="result-bets-body"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -385,11 +403,27 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Nombre de la Polla</label>
-                                    <input type="text" id="setting-name" value="Polla Mundialista Familiar 2026">
+                                    <input type="text" id="setting-name" value="Polla Mundialista 2026">
                                 </div>
                                 <div class="form-group">
-                                    <label>Costo de Inscripción ($)</label>
-                                    <input type="number" id="setting-cost" value="10">
+                                    <label>Costo por Apuesta (COP)</label>
+                                    <input type="number" id="setting-cost" value="5000">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Moneda</label>
+                                    <input type="text" id="setting-moneda" value="COP">
+                                </div>
+                                <div class="form-group">
+                                    <label>Nequi</label>
+                                    <input type="text" id="setting-nequi" value="3218593047">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Banco (info transferencia)</label>
+                                    <input type="text" id="setting-banco" value="Bancolombia | Cuenta: 08585591247 | Titular: Polla Mundialista">
                                 </div>
                             </div>
                             <div class="form-row">

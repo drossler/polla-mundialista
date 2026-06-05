@@ -81,6 +81,10 @@ DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='bets' AND column_name='points_earned') THEN ALTER TABLE public.bets ADD COLUMN points_earned INTEGER DEFAULT 0; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='bets' AND column_name='result_type') THEN ALTER TABLE public.bets ADD COLUMN result_type TEXT DEFAULT 'pending' CHECK (result_type IN ('pending','exact','winner','wrong')); END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='bets' AND column_name='paid') THEN ALTER TABLE public.bets ADD COLUMN paid BOOLEAN DEFAULT FALSE; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='bets' AND column_name='paid_at') THEN ALTER TABLE public.bets ADD COLUMN paid_at TIMESTAMPTZ; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='bets' AND column_name='payout') THEN ALTER TABLE public.bets ADD COLUMN payout BOOLEAN DEFAULT FALSE; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='bets' AND column_name='payout_at') THEN ALTER TABLE public.bets ADD COLUMN payout_at TIMESTAMPTZ; END IF;
 END $$;
 
 -- ============================================================
@@ -106,6 +110,10 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='payments' AND column_name='comprobante_notes') THEN ALTER TABLE public.payments ADD COLUMN comprobante_notes TEXT DEFAULT ''; END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='payments' AND column_name='approved_by') THEN ALTER TABLE public.payments ADD COLUMN approved_by UUID REFERENCES public.profiles(id); END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='payments' AND column_name='approved_at') THEN ALTER TABLE public.payments ADD COLUMN approved_at TIMESTAMPTZ; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='payments' AND column_name='bet_id') THEN ALTER TABLE public.payments ADD COLUMN bet_id UUID REFERENCES public.bets(id) ON DELETE SET NULL; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='payments' AND column_name='amount') THEN ALTER TABLE public.payments ADD COLUMN amount NUMERIC DEFAULT 5000; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='payments' AND column_name='payout') THEN ALTER TABLE public.payments ADD COLUMN payout BOOLEAN DEFAULT FALSE; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='payments' AND column_name='payout_at') THEN ALTER TABLE public.payments ADD COLUMN payout_at TIMESTAMPTZ; END IF;
 END $$;
 
 -- ============================================================
@@ -113,7 +121,8 @@ END $$;
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.config (
     id              INTEGER PRIMARY KEY DEFAULT 1,
-    valor_apuesta   NUMERIC DEFAULT 10,
+    costo_apuesta   NUMERIC DEFAULT 5000,
+    moneda          TEXT DEFAULT 'COP',
     points_exact    INTEGER DEFAULT 5,
     points_winner   INTEGER DEFAULT 3,
     multiplier      NUMERIC DEFAULT 2,
@@ -121,10 +130,12 @@ CREATE TABLE IF NOT EXISTS public.config (
     prize_second    NUMERIC DEFAULT 25,
     prize_third     NUMERIC DEFAULT 15,
     prize_last      NUMERIC DEFAULT 10,
-    reglas          TEXT DEFAULT 'Predicción exacta: 5 pts. Ganador correcto: 3 pts.',
-    premios         TEXT DEFAULT '1ro: 50% | 2do: 25% | 3ro: 15% | Último: 10%',
+    reglas          TEXT DEFAULT 'Cada apuesta cuesta $5.000 COP. Predicción exacta: 5 pts. Ganador correcto: 3 pts.',
+    premios         TEXT DEFAULT 'Premios por partido finalizado vía Nequi.',
     active          BOOLEAN DEFAULT TRUE,
-    nombre_polla    TEXT DEFAULT 'Polla Mundialista Familiar 2026',
+    nombre_polla    TEXT DEFAULT 'Polla Mundialista 2026',
+    nequi           TEXT DEFAULT '3218593047',
+    banco           TEXT DEFAULT 'Bancolombia | Cuenta: 08585591247 | Titular: Polla Mundialista',
     CONSTRAINT config_single_row CHECK (id = 1)
 );
 
@@ -136,14 +147,25 @@ BEGIN
         WHERE table_schema = 'public' AND table_name = 'config'
           AND column_name = 'id' AND data_type = 'uuid'
     ) THEN
-        -- Eliminar duplicados (dejar solo una fila)
         DELETE FROM public.config WHERE id NOT IN (SELECT id FROM public.config LIMIT 1);
-        -- Migrar columna
         ALTER TABLE public.config ALTER COLUMN id DROP DEFAULT;
         ALTER TABLE public.config ALTER COLUMN id TYPE INTEGER USING 1;
         ALTER TABLE public.config ALTER COLUMN id SET DEFAULT 1;
         ALTER TABLE public.config DROP CONSTRAINT IF EXISTS config_single_row;
         ALTER TABLE public.config ADD CONSTRAINT config_single_row CHECK (id = 1);
+    END IF;
+    -- Migrar columnas nuevas de config si no existen
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='config' AND column_name='costo_apuesta') THEN
+        ALTER TABLE public.config ADD COLUMN costo_apuesta NUMERIC DEFAULT 5000;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='config' AND column_name='moneda') THEN
+        ALTER TABLE public.config ADD COLUMN moneda TEXT DEFAULT 'COP';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='config' AND column_name='nequi') THEN
+        ALTER TABLE public.config ADD COLUMN nequi TEXT DEFAULT '3218593047';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='config' AND column_name='banco') THEN
+        ALTER TABLE public.config ADD COLUMN banco TEXT DEFAULT 'Bancolombia | Cuenta: 08585591247 | Titular: Polla Mundialista';
     END IF;
 END $$;
 
